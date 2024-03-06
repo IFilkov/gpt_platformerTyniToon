@@ -51,10 +51,17 @@
     };
 
     const platforms = [
+      // Этажи снизу
       { x: canvas.width / 2 + 50, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
+
+      // Этажи сверху
+      { x: canvas.width / 2 + 50, y: canvas.height - 400, width: 180, height: 30, color: 'green' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 480, width: 180, height: 30, color: 'green' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 560, width: 180, height: 30, color: 'green' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 640, width: 180, height: 30, color: 'green' },
     ];
 
     const keys = {};
@@ -194,6 +201,10 @@
       platforms[1].x = canvas.width / 2 + 50;
       platforms[2].x = canvas.width / 2 + 50;
       platforms[3].x = canvas.width / 2 + 50;
+      platforms[4].x = canvas.width / 2 + 50;
+      platforms[5].x = canvas.width / 2 + 50;
+      platforms[6].x = canvas.width / 2 + 50;
+      platforms[7].x = canvas.width / 2 + 50;
     });
 
     gameLoop();
