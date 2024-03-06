@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Простой платформер</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const hero = {
+      x: 50,
+      y: canvas.height - 50,
+      width: 30,
+      height: 30,
+      color: 'red',
+      speed: 5,
+      jumpHeight: 6 * 30,
+      jumpStartY: 0,
+      isJumping: false,
+      onLadder: false,
+      onPlatform: false,
+      isFalling: false,
+      fallStartY: 0,
+    };
+
+    const ladder = {
+      x: canvas.width / 2 - 15,
+      y: 0,
+      width: 30,
+      height: canvas.height,
+      color: 'gray',
+    };
+
+    const platforms = [
+      { x: canvas.width / 2 + 50, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
+    ];
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => keys[e.code] = true);
+    window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function gameLoop() {
+      update();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawLadder();
+      drawPlatforms();
+      drawHero();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+      if (keys['ArrowLeft'] && hero.x > 0) {
+        hero.x -= hero.speed;
+      }
+
+      if (keys['ArrowRight'] && hero.x < canvas.width - hero.width) {
+        hero.x += hero.speed;
+      }
+
+      if (keys['Space'] && !hero.isJumping && (hero.onLadder || hero.onPlatform)) {
+        hero.isJumping = true;
+        hero.jumpStartY = hero.y;
+        hero.jumpDirection = 1;
+      }
+
+      if (keys['ArrowUp'] && hero.onLadder) {
+        hero.y -= hero.speed;
+      }
+
+      if (keys['ArrowDown'] && hero.onLadder) {
+        hero.y += hero.speed;
+      }
+
+      if (keys['ArrowDown'] && hero.onPlatform) {
+        // Если герой на платформе и нажата стрелка вниз, он начинает падать
+        hero.isFalling = true;
+        hero.fallStartY = hero.y;
+      }
+
+      if (hero.isJumping) {
+        if (hero.jumpDirection === 1) {
+          hero.y = hero.jumpStartY - Math.pow((hero.jumpHeight - (hero.y - hero.jumpStartY)), 2) / 100;
+
+          if (hero.y <= hero.jumpStartY - hero.jumpHeight) {
+            hero.jumpDirection = -1;
+          }
+        } else {
+          hero.y += 5;
+
+          if (hero.y >= canvas.height - hero.height) {
+            hero.isJumping = false;
+            hero.y = canvas.height - hero.height;
+          }
+        }
+      }
+
+      if (hero.isFalling) {
+        hero.y += 5;
+
+        if (hero.y >= canvas.height - hero.height) {
+          hero.isFalling = false;
+          hero.y = canvas.height - hero.height;
+        }
+
+        // Проверка на соприкосновение с платформой во время падения
+        hero.onPlatform = platforms.some(platform => (
+          hero.x < platform.x + platform.width &&
+          hero.x + hero.width > platform.x &&
+          hero.y + hero.height > platform.y &&
+          hero.y < platform.y + platform.height
+        ));
+
+        // Если герой снова находится на платформе, завершаем падение
+        if (hero.onPlatform) {
+          hero.isFalling = false;
+          hero.fallStartY = 0;
+        }
+      }
+
+      // Проверка на соприкосновение с лестницей
+      if (
+        hero.x < ladder.x + ladder.width &&
+        hero.x + hero.width > ladder.x &&
+        hero.y + hero.height > ladder.y &&
+        hero.y < ladder.y + ladder.height
+      ) {
+        hero.onLadder = true;
+        hero.onPlatform = false;
+      } else {
+        hero.onLadder = false;
+
+        // Проверка на соприкосновение с верхней частью платформы
+        hero.onPlatform = platforms.some(platform => (
+          hero.x < platform.x + platform.width &&
+          hero.x + hero.width > platform.x &&
+          hero.y < platform.y
+        ));
+
+        // Если герой не на лестнице и не на верхней части платформы и не в прыжке, пусть он падает вниз
+        if (!hero.isJumping && !hero.onPlatform && !hero.isFalling) {
+          hero.y += 5;
+          if (hero.y >= canvas.height - hero.height) {
+            hero.y = canvas.height - hero.height;
+          }
+        }
+      }
+    }
+
+    function drawHero() {
+      ctx.fillStyle = hero.color;
+      ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
+    }
+
+    function drawLadder() {
+      ctx.fillStyle = ladder.color;
+      ctx.fillRect(ladder.x, ladder.y, ladder.width, ladder.height);
+    }
+
+    function drawPlatforms() {
+      platforms.forEach(platform => {
+        ctx.fillStyle = platform.color;
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ladder.x = canvas.width / 2 - 15;
+      // Пересчитываем позиции платформ при изменении размеров окна
+      platforms[0].x = canvas.width / 2 + 50;
+      platforms[1].x = canvas.width / 2 + 50;
+      platforms[2].x = canvas.width / 2 + 50;
+      platforms[3].x = canvas.width / 2 + 50;
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>
