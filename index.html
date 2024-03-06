@@ -51,17 +51,39 @@
     };
 
     const platforms = [
-      // Этажи снизу
+      // Первый столбик
       { x: canvas.width / 2 + 50, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
       { x: canvas.width / 2 + 50, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
-
-      // Этажи сверху
-      { x: canvas.width / 2 + 50, y: canvas.height - 400, width: 180, height: 30, color: 'green' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 480, width: 180, height: 30, color: 'green' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 560, width: 180, height: 30, color: 'green' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 640, width: 180, height: 30, color: 'green' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 50, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
+      // Второй столбик
+      { x: canvas.width / 2 + 250, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 250, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
+      // Третий столбик
+      { x: canvas.width / 2 + 450, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
+      { x: canvas.width / 2 + 450, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
+      // Четвертый столбик
+     
+      
     ];
 
     const keys = {};
@@ -201,10 +223,44 @@
       platforms[1].x = canvas.width / 2 + 50;
       platforms[2].x = canvas.width / 2 + 50;
       platforms[3].x = canvas.width / 2 + 50;
-      platforms[4].x = canvas.width / 2 + 50;
-      platforms[5].x = canvas.width / 2 + 50;
-      platforms[6].x = canvas.width / 2 + 50;
-      platforms[7].x = canvas.width / 2 + 50;
+      platforms[4].x = canvas.width / 2 + 250;
+      platforms[5].x = canvas.width / 2 + 250;
+      platforms[6].x = canvas.width / 2 + 250;
+      platforms[7].x = canvas.width / 2 + 250;
+      platforms[8].x = canvas.width / 2 + 450;
+      platforms[9].x = canvas.width / 2 + 450;
+      platforms[10].x = canvas.width / 2 + 450;
+      platforms[11].x = canvas.width / 2 + 450;
+      platforms[12].x = canvas.width / 2 + 650;
+      platforms[13].x = canvas.width / 2 + 650;
+      platforms[14].x = canvas.width / 2 + 650;
+      platforms[15].x = canvas.width / 2 + 650;
+      platforms[16].x = canvas.width / 2 + 850;
+      platforms[17].x = canvas.width / 2 + 850;
+      platforms[18].x = canvas.width / 2 + 850;
+      platforms[19].x = canvas.width / 2 + 850;
+      platforms[20].x = canvas.width / 2 + 1050;
+      platforms[21].x = canvas.width / 2 + 1050;
+      platforms[22].x = canvas.width / 2 + 1050;
+      platforms[23].x = canvas.width / 2 + 1050;
+      platforms[24].x = canvas.width / 2 + 1250;
+      platforms[25].x = canvas.width / 2 + 1250;
+      platforms[26].x = canvas.width / 2 + 1250;
+      platforms[27].x = canvas.width / 2 + 1250;
+      platforms[28].x = canvas.width / 2 + 1450;
+      platforms[29].x = canvas.width / 2 + 1450;
+      platforms[30].x = canvas.width / 2 + 1450;
+      platforms[31].x = canvas.width / 2 + 1450;
+      platforms[32].x = canvas.width / 2 + 1650;
+      platforms[33].x = canvas.width / 2 + 1650;
+      platforms[34].x = canvas.width / 2 + 1650;
+      platforms[35].x = canvas.width / 2 + 1650;
+      // Новые платформы сверху
+      // platforms[32].x = canvas.width / 2 + 50;
+      // platforms[33].x = canvas.width / 2 + 250;
+      // platforms[34].x = canvas.width / 2 + 450;
+      // platforms[35].x = canvas.width / 2 + 650;
+      // platforms[36].x = canvas.width / 2 + 850;
     });
 
     gameLoop();
