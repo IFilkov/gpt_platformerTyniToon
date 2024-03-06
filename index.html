@@ -40,6 +40,7 @@
       onPlatform: false,
       isFalling: false,
       fallStartY: 0,
+      score: 0,
     };
 
     const ladder = {
@@ -86,6 +87,16 @@
       
     ];
 
+    const girls = platforms.map(platform => ({
+      x: platform.x + platform.width / 2 - 15,
+      y: platform.y - 30,
+      width: 30,
+      height: 30,
+      color: 'black',
+      isActive: true,
+      timer: 20, // начальное время для каждой девушки
+    }));
+
     const keys = {};
     window.addEventListener('keydown', (e) => keys[e.code] = true);
     window.addEventListener('keyup', (e) => keys[e.code] = false);
@@ -95,7 +106,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawLadder();
       drawPlatforms();
+      drawGirls();
       drawHero();
+      drawScore();
       requestAnimationFrame(gameLoop);
     }
 
@@ -195,7 +208,54 @@
           }
         }
       }
+      handleGirlCollision();
+      updateGirlsTimer();
     }
+
+    function handleGirlCollision() {
+      girls.forEach(girl => {
+        if (
+          hero.x < girl.x + girl.width &&
+          hero.x + hero.width > girl.x &&
+          hero.y < girl.y + girl.height &&
+          hero.y + hero.height > girl.y &&
+          girl.isActive
+        ) {
+          girl.isActive = false;
+          startTimer(girl);
+          hero.score += girl.timer; // При коллизии добавляем оставшееся время к очкам
+        }
+      });
+    }
+
+    function updateGirlsTimer() {
+      girls.forEach(girl => {
+        if (girl.timer > 0 && !girl.isActive) {
+          girl.timer -= 1 / 60; // Уменьшаем таймер при каждом обновлении игрового цикла (60 раз в секунду)
+        }
+      });
+    }
+
+    function startTimer(girl) {
+      setTimeout(() => {
+        girl.timer = 0;
+      }, girl.timer * 1000);
+    }
+
+    function drawGirls() {
+      girls.forEach(girl => {
+        if (girl.isActive) {
+          ctx.fillStyle = girl.color;
+          ctx.fillRect(girl.x, girl.y, girl.width, girl.height);
+        }
+      });
+    }
+
+    function drawScore() {
+    ctx.fillStyle = 'black';
+    ctx.font = '24px Arial';
+    ctx.fillText(`Score: ${hero.score}`, 20, 40);
+  }
 
     function drawHero() {
       ctx.fillStyle = hero.color;
