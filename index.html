@@ -441,17 +441,23 @@
             girl.isActive
           ) {
             if (girl.timer === 0) {
-              // Если таймер равен 0, устанавливаем его в начальное значение
               girl.timer = 1 / 60; // 1 секунда
             } else {
-              // Иначе, добавляем очки герою и делаем девушку неактивной
-              hero.score += 100;
-              girl.isActive = false;
+              if (girl.timer >= 10) {
+                // После 10 секунд убираем розовый квадрат и начисляем очки
+                hero.score += 100;
+                girl.isActive = false;
+                girl.timer = 0; // Сбрасываем таймер
+              } else {
+                // До 10 секунд продолжаем увеличивать таймер
+                girl.timer += 1 / 60;
+              }
             }
+          } else {
+            girl.timer = 0;
           }
         });
       }
-
       function drawHero() {
         ctx.fillStyle = hero.color;
         ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
@@ -465,12 +471,7 @@
       function drawPlatforms() {
         platforms.forEach((platform) => {
           ctx.fillStyle = platform.color;
-          ctx.fillRect(
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          );
+          ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         });
       }
 
