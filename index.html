@@ -51,6 +51,14 @@
       color: 'gray',
     };
 
+    const girls = [
+    // Позиции девушек (x, y) и их текущий таймер
+    { x: canvas.width / 2 + 50, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
+    { x: canvas.width / 2 + 250, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
+    { x: canvas.width / 2 + 450, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
+    // Добавьте дополнительные девушки, если нужно
+  ];
+
     const platforms = [
       // Первый столбик
       { x: canvas.width / 2 + 50, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
@@ -87,30 +95,20 @@
       
     ];
 
-    const girls = platforms.map(platform => ({
-      x: platform.x + platform.width / 2 - 15,
-      y: platform.y - 30,
-      width: 30,
-      height: 30,
-      color: 'black',
-      isActive: true,
-      timer: 20, // начальное время для каждой девушки
-    }));
-
     const keys = {};
     window.addEventListener('keydown', (e) => keys[e.code] = true);
     window.addEventListener('keyup', (e) => keys[e.code] = false);
 
     function gameLoop() {
-      update();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawLadder();
-      drawPlatforms();
-      drawGirls();
-      drawHero();
-      drawScore();
-      requestAnimationFrame(gameLoop);
-    }
+    update();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawLadder();
+    drawPlatforms();
+    drawGirls();
+    drawHero();
+    drawScore();
+    requestAnimationFrame(gameLoop);
+  }
 
     function update() {
       if (keys['ArrowLeft'] && hero.x > 0) {
@@ -212,29 +210,65 @@
       updateGirlsTimer();
     }
 
+    function updateGirlsTimer() {
+    girls.forEach(girl => {
+    if (girl.timer > 0 && girl.isActive) {
+      girl.timer += 1 / 60; // Уменьшаем таймер при каждом обновлении игрового цикла (60 раз в секунду)
+
+      // Добавляем проверку на количество очков героя
+      if (hero.score >= 200) {
+        // Если количество очков достигло 200, сбрасываем таймер и делаем девушку неактивной
+        girl.timer = 0;
+        hero.score === 0;
+        girl.isActive = false;
+      }
+    }
+  });
+}
+
+
+
+    let hasScored = false;
+
     function handleGirlCollision() {
-      girls.forEach(girl => {
-        if (
-          hero.x < girl.x + girl.width &&
-          hero.x + hero.width > girl.x &&
-          hero.y < girl.y + girl.height &&
-          hero.y + hero.height > girl.y &&
-          girl.isActive
-        ) {
-          girl.isActive = false;
-          startTimer(girl);
-          hero.score += girl.timer; // При коллизии добавляем оставшееся время к очкам
-        }
-      });
+  girls.forEach(girl => {
+    if (
+      hero.x < girl.x + girl.width &&
+      hero.x + hero.width > girl.x &&
+      hero.y < girl.y + girl.height &&
+      hero.y + hero.height > girl.y &&
+      girl.isActive
+    ) {
+      // Проверяем, что количество очков героя меньше 200
+      if (hero.score < 200 && girl.timer < 20) {
+        girl.timer += 1 / 60; // Увеличиваем таймер (1 секунда = 1 / 60)
+        hero.score += 1; // Начисляем очки герою
+        hasScored = true; // Устанавливаем флаг, что герой начислил себе очки
+      }
+    } else {
+      // Если герой не в коллизии с девушкой, обнуляем таймер
+      girl.timer = 0;
     }
 
-    function updateGirlsTimer() {
-      girls.forEach(girl => {
-        if (girl.timer > 0 && !girl.isActive) {
-          girl.timer -= 1 / 60; // Уменьшаем таймер при каждом обновлении игрового цикла (60 раз в секунду)
-        }
-      });
+    // Если таймер достиг максимального значения, делаем девушку неактивной
+    if (girl.timer >= 20) {
+      girl.isActive = false;
+      girl.timer = 0;
+      hasScored = false; // Сбрасываем флаг после того, как девушка становится неактивной
+
+      // Проверяем, достигло ли количество очков героя значения 200
+      if (hero.score >= 200) {
+        // Если достигло, здесь можно добавить какие-то дополнительные действия или обработку
+      } else {
+        // Если не достигло, сбрасываем количество очков на 0
+        hero.score = 0;
+      }
     }
+  });
+}
+
+
+
 
     function startTimer(girl) {
       setTimeout(() => {
