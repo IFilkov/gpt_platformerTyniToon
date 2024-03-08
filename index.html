@@ -287,6 +287,16 @@
         requestAnimationFrame(gameLoop);
       }
 
+      const blueSquare = {
+        x: canvas.width / 2 + 450,
+        y: canvas.height - 700,
+        width: 30,
+        height: 30,
+        color: "aqua",
+      };
+
+      let savedScore = 0;
+
       function update() {
         if (keys["ArrowLeft"] && hero.x > 0) {
           hero.x -= hero.speed;
@@ -401,6 +411,23 @@
               }
             }
           }
+
+          if (
+            hero.x < blueSquare.x + blueSquare.width &&
+            hero.x + hero.width > blueSquare.x &&
+            hero.y + hero.height > blueSquare.y &&
+            hero.y < blueSquare.y + blueSquare.height
+          ) {
+            if (!blueSquare.isActive) {
+              savedScore = hero.score; // Сохраняем текущее количество очков
+              blueSquare.isActive = true;
+            }
+          } else {
+            if (blueSquare.isActive) {
+              hero.score = savedScore; // Восстанавливаем сохраненные очки при выходе из коллизии
+              blueSquare.isActive = false;
+            }
+          }
         }
         handleGirlCollision();
         updateGirlsTimer();
@@ -470,6 +497,17 @@
           ctx.fillStyle = platform.color;
           ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         });
+        drawBlueSquare();
+      }
+
+      function drawBlueSquare() {
+        ctx.fillStyle = blueSquare.color;
+        ctx.fillRect(
+          blueSquare.x,
+          blueSquare.y,
+          blueSquare.width,
+          blueSquare.height
+        );
       }
 
       function drawGirls() {
