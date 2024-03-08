@@ -1,363 +1,569 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Простой платформер</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    canvas {
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <canvas id="gameCanvas"></canvas>
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const hero = {
-      x: 50,
-      y: canvas.height - 50,
-      width: 30,
-      height: 30,
-      color: 'red',
-      speed: 5,
-      jumpHeight: 6 * 30,
-      jumpStartY: 0,
-      isJumping: false,
-      onLadder: false,
-      onPlatform: false,
-      isFalling: false,
-      fallStartY: 0,
-      score: 0,
-    };
-
-    const ladder = {
-      x: canvas.width / 2 - 15,
-      y: 0,
-      width: 30,
-      height: canvas.height,
-      color: 'gray',
-    };
-
-    const girls = [
-    // Позиции девушек (x, y) и их текущий таймер
-    { x: canvas.width / 2 + 50, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
-    { x: canvas.width / 2 + 250, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
-    { x: canvas.width / 2 + 450, y: canvas.height - 120, width: 30, height: 30, color: 'pink', timer: 0, isActive: true },
-    // Добавьте дополнительные девушки, если нужно
-  ];
-
-    const platforms = [
-      // Первый столбик
-      { x: canvas.width / 2 + 50, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 50, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
-      // Второй столбик
-      { x: canvas.width / 2 + 250, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 250, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
-      // Третий столбик
-      { x: canvas.width / 2 + 450, y: canvas.height - 80, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 160, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 240, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 320, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 400, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 480, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 560, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 620, width: 180, height: 30, color: 'blue' },
-      { x: canvas.width / 2 + 450, y: canvas.height - 700, width: 180, height: 30, color: 'blue' },
-      // Четвертый столбик
-     
-      
-    ];
-
-    const keys = {};
-    window.addEventListener('keydown', (e) => keys[e.code] = true);
-    window.addEventListener('keyup', (e) => keys[e.code] = false);
-
-    function gameLoop() {
-    update();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawLadder();
-    drawPlatforms();
-    drawGirls();
-    drawHero();
-    drawScore();
-    requestAnimationFrame(gameLoop);
-  }
-
-    function update() {
-      if (keys['ArrowLeft'] && hero.x > 0) {
-        hero.x -= hero.speed;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Простой платформер</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
       }
 
-      if (keys['ArrowRight'] && hero.x < canvas.width - hero.width) {
-        hero.x += hero.speed;
+      canvas {
+        display: block;
       }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
 
-      if (keys['Space'] && !hero.isJumping && (hero.onLadder || hero.onPlatform)) {
-        hero.isJumping = true;
-        hero.jumpStartY = hero.y;
-        hero.jumpDirection = 1;
-      }
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
 
-      if (keys['ArrowUp'] && hero.onLadder) {
-        hero.y -= hero.speed;
-      }
-
-      if (keys['ArrowDown'] && hero.onLadder) {
-        hero.y += hero.speed;
-      }
-
-      if (keys['ArrowDown'] && hero.onPlatform) {
-        // Если герой на платформе и нажата стрелка вниз, он начинает падать
-        hero.isFalling = true;
-        hero.fallStartY = hero.y;
-      }
-
-      if (hero.isJumping) {
-        if (hero.jumpDirection === 1) {
-          hero.y = hero.jumpStartY - Math.pow((hero.jumpHeight - (hero.y - hero.jumpStartY)), 2) / 100;
-
-          if (hero.y <= hero.jumpStartY - hero.jumpHeight) {
-            hero.jumpDirection = -1;
-          }
-        } else {
-          hero.y += 5;
-
-          if (hero.y >= canvas.height - hero.height) {
-            hero.isJumping = false;
-            hero.y = canvas.height - hero.height;
-          }
-        }
-      }
-
-      if (hero.isFalling) {
-        hero.y += 5;
-
-        if (hero.y >= canvas.height - hero.height) {
-          hero.isFalling = false;
-          hero.y = canvas.height - hero.height;
-        }
-
-        // Проверка на соприкосновение с платформой во время падения
-        hero.onPlatform = platforms.some(platform => (
-          hero.x < platform.x + platform.width &&
-          hero.x + hero.width > platform.x &&
-          hero.y + hero.height > platform.y &&
-          hero.y < platform.y + platform.height
-        ));
-
-        // Если герой снова находится на платформе, завершаем падение
-        if (hero.onPlatform) {
-          hero.isFalling = false;
-          hero.fallStartY = 0;
-        }
-      }
-
-      // Проверка на соприкосновение с лестницей
-      if (
-        hero.x < ladder.x + ladder.width &&
-        hero.x + hero.width > ladder.x &&
-        hero.y + hero.height > ladder.y &&
-        hero.y < ladder.y + ladder.height
-      ) {
-        hero.onLadder = true;
-        hero.onPlatform = false;
-      } else {
-        hero.onLadder = false;
-
-        // Проверка на соприкосновение с верхней частью платформы
-        hero.onPlatform = platforms.some(platform => (
-          hero.x < platform.x + platform.width &&
-          hero.x + hero.width > platform.x &&
-          hero.y < platform.y
-        ));
-
-        // Если герой не на лестнице и не на верхней части платформы и не в прыжке, пусть он падает вниз
-        if (!hero.isJumping && !hero.onPlatform && !hero.isFalling) {
-          hero.y += 5;
-          if (hero.y >= canvas.height - hero.height) {
-            hero.y = canvas.height - hero.height;
-          }
-        }
-      }
-      handleGirlCollision();
-      updateGirlsTimer();
-    }
-
-    function updateGirlsTimer() {
-    girls.forEach(girl => {
-    if (girl.timer > 0 && girl.isActive) {
-      girl.timer += 1 / 60; // Уменьшаем таймер при каждом обновлении игрового цикла (60 раз в секунду)
-
-      // Добавляем проверку на количество очков героя
-      if (hero.score >= 200) {
-        // Если количество очков достигло 200, сбрасываем таймер и делаем девушку неактивной
-        girl.timer = 0;
-        hero.score === 0;
-        girl.isActive = false;
-      }
-    }
-  });
-}
-
-
-
-    let hasScored = false;
-
-    function handleGirlCollision() {
-  girls.forEach(girl => {
-    if (
-      hero.x < girl.x + girl.width &&
-      hero.x + hero.width > girl.x &&
-      hero.y < girl.y + girl.height &&
-      hero.y + hero.height > girl.y &&
-      girl.isActive
-    ) {
-      // Проверяем, что количество очков героя меньше 200
-      if (hero.score < 200 && girl.timer < 20) {
-        girl.timer += 1 / 60; // Увеличиваем таймер (1 секунда = 1 / 60)
-        hero.score += 1; // Начисляем очки герою
-        hasScored = true; // Устанавливаем флаг, что герой начислил себе очки
-      }
-    } else {
-      // Если герой не в коллизии с девушкой, обнуляем таймер
-      girl.timer = 0;
-    }
-
-    // Если таймер достиг максимального значения, делаем девушку неактивной
-    if (girl.timer >= 20) {
-      girl.isActive = false;
-      girl.timer = 0;
-      hasScored = false; // Сбрасываем флаг после того, как девушка становится неактивной
-
-      // Проверяем, достигло ли количество очков героя значения 200
-      if (hero.score >= 200) {
-        // Если достигло, здесь можно добавить какие-то дополнительные действия или обработку
-      } else {
-        // Если не достигло, сбрасываем количество очков на 0
-        hero.score = 0;
-      }
-    }
-  });
-}
-
-
-
-
-    function startTimer(girl) {
-      setTimeout(() => {
-        girl.timer = 0;
-      }, girl.timer * 1000);
-    }
-
-    function drawGirls() {
-      girls.forEach(girl => {
-        if (girl.isActive) {
-          ctx.fillStyle = girl.color;
-          ctx.fillRect(girl.x, girl.y, girl.width, girl.height);
-        }
-      });
-    }
-
-    function drawScore() {
-    ctx.fillStyle = 'black';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Score: ${hero.score}`, 20, 40);
-  }
-
-    function drawHero() {
-      ctx.fillStyle = hero.color;
-      ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
-    }
-
-    function drawLadder() {
-      ctx.fillStyle = ladder.color;
-      ctx.fillRect(ladder.x, ladder.y, ladder.width, ladder.height);
-    }
-
-    function drawPlatforms() {
-      platforms.forEach(platform => {
-        ctx.fillStyle = platform.color;
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-      });
-    }
-
-    window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      ladder.x = canvas.width / 2 - 15;
-      // Пересчитываем позиции платформ при изменении размеров окна
-      platforms[0].x = canvas.width / 2 + 50;
-      platforms[1].x = canvas.width / 2 + 50;
-      platforms[2].x = canvas.width / 2 + 50;
-      platforms[3].x = canvas.width / 2 + 50;
-      platforms[4].x = canvas.width / 2 + 250;
-      platforms[5].x = canvas.width / 2 + 250;
-      platforms[6].x = canvas.width / 2 + 250;
-      platforms[7].x = canvas.width / 2 + 250;
-      platforms[8].x = canvas.width / 2 + 450;
-      platforms[9].x = canvas.width / 2 + 450;
-      platforms[10].x = canvas.width / 2 + 450;
-      platforms[11].x = canvas.width / 2 + 450;
-      platforms[12].x = canvas.width / 2 + 650;
-      platforms[13].x = canvas.width / 2 + 650;
-      platforms[14].x = canvas.width / 2 + 650;
-      platforms[15].x = canvas.width / 2 + 650;
-      platforms[16].x = canvas.width / 2 + 850;
-      platforms[17].x = canvas.width / 2 + 850;
-      platforms[18].x = canvas.width / 2 + 850;
-      platforms[19].x = canvas.width / 2 + 850;
-      platforms[20].x = canvas.width / 2 + 1050;
-      platforms[21].x = canvas.width / 2 + 1050;
-      platforms[22].x = canvas.width / 2 + 1050;
-      platforms[23].x = canvas.width / 2 + 1050;
-      platforms[24].x = canvas.width / 2 + 1250;
-      platforms[25].x = canvas.width / 2 + 1250;
-      platforms[26].x = canvas.width / 2 + 1250;
-      platforms[27].x = canvas.width / 2 + 1250;
-      platforms[28].x = canvas.width / 2 + 1450;
-      platforms[29].x = canvas.width / 2 + 1450;
-      platforms[30].x = canvas.width / 2 + 1450;
-      platforms[31].x = canvas.width / 2 + 1450;
-      platforms[32].x = canvas.width / 2 + 1650;
-      platforms[33].x = canvas.width / 2 + 1650;
-      platforms[34].x = canvas.width / 2 + 1650;
-      platforms[35].x = canvas.width / 2 + 1650;
-      // Новые платформы сверху
-      // platforms[32].x = canvas.width / 2 + 50;
-      // platforms[33].x = canvas.width / 2 + 250;
-      // platforms[34].x = canvas.width / 2 + 450;
-      // platforms[35].x = canvas.width / 2 + 650;
-      // platforms[36].x = canvas.width / 2 + 850;
-    });
 
-    gameLoop();
-  </script>
-</body>
+      const hero = {
+        x: 50,
+        y: canvas.height - 50,
+        width: 30,
+        height: 30,
+        color: "red",
+        speed: 5,
+        jumpHeight: 6 * 30,
+        jumpStartY: 0,
+        isJumping: false,
+        onLadder: false,
+        onPlatform: false,
+        isFalling: false,
+        fallStartY: 0,
+        score: 0,
+      };
+
+      const ladder = {
+        x: canvas.width / 2 - 15,
+        y: 0,
+        width: 30,
+        height: canvas.height,
+        color: "gray",
+      };
+
+      const girls = [
+        // Позиции девушек (x, y) и их текущий таймер
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 120,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 120,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 120,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        // Добавьте дополнительные девушки, если нужно
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 420,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 650,
+          y: canvas.height - 160,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 650,
+          y: canvas.height - 240,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+
+        {
+          x: canvas.width / 2 + 420,
+          y: canvas.height - 160,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 420,
+          y: canvas.height - 240,
+          width: 30,
+          height: 30,
+          color: "pink",
+          timer: 0,
+          isActive: true,
+        },
+        // Добавьте дополнительные девушки, если нужно
+      ];
+
+      const platforms = [
+        // Первый столбик
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 80,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 160,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 240,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 320,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 400,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 480,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 560,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 620,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 700,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        // Второй столбик
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 80,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 160,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 240,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 320,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 400,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 480,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 560,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 620,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 700,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        // Третий столбик
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 80,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 160,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 240,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 320,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 400,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 480,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 560,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 620,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        {
+          x: canvas.width / 2 + 450,
+          y: canvas.height - 700,
+          width: 180,
+          height: 30,
+          color: "blue",
+        },
+        // Четвертый столбик
+      ];
+
+      const keys = {};
+      window.addEventListener("keydown", (e) => (keys[e.code] = true));
+      window.addEventListener("keyup", (e) => (keys[e.code] = false));
+
+      function gameLoop() {
+        update();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawLadder();
+        drawPlatforms();
+        drawGirls();
+        drawHero();
+        drawScore();
+        requestAnimationFrame(gameLoop);
+      }
+
+      function update() {
+        if (keys["ArrowLeft"] && hero.x > 0) {
+          hero.x -= hero.speed;
+        }
+
+        if (keys["ArrowRight"] && hero.x < canvas.width - hero.width) {
+          hero.x += hero.speed;
+        }
+
+        if (
+          keys["Space"] &&
+          !hero.isJumping &&
+          (hero.onLadder || hero.onPlatform)
+        ) {
+          hero.isJumping = true;
+          hero.jumpStartY = hero.y;
+          hero.jumpDirection = 1;
+        }
+
+        if (keys["ArrowUp"] && hero.onLadder) {
+          hero.y -= hero.speed;
+        }
+
+        if (keys["ArrowDown"] && hero.onLadder) {
+          hero.y += hero.speed;
+        }
+
+        if (keys["ArrowDown"] && hero.onPlatform) {
+          // Если герой на платформе и нажата стрелка вниз, он начинает падать
+          hero.isFalling = true;
+          hero.fallStartY = hero.y;
+        }
+
+        if (hero.isJumping) {
+          if (hero.jumpDirection === 1) {
+            hero.y =
+              hero.jumpStartY -
+              Math.pow(hero.jumpHeight - (hero.y - hero.jumpStartY), 2) / 100;
+
+            if (hero.y <= hero.jumpStartY - hero.jumpHeight) {
+              hero.jumpDirection = -1;
+            }
+          } else {
+            hero.y += 5;
+
+            if (hero.y >= canvas.height - hero.height) {
+              hero.isJumping = false;
+              hero.y = canvas.height - hero.height;
+            }
+          }
+        }
+
+        if (hero.isFalling) {
+          hero.y += 5;
+
+          if (hero.y >= canvas.height - hero.height) {
+            hero.isFalling = false;
+            hero.y = canvas.height - hero.height;
+          }
+
+          // Проверка на соприкосновение с платформой во время падения
+          hero.onPlatform = platforms.some(
+            (platform) =>
+              hero.x < platform.x + platform.width &&
+              hero.x + hero.width > platform.x &&
+              hero.y + hero.height > platform.y &&
+              hero.y < platform.y + platform.height
+          );
+
+          // Если герой снова находится на платформе, завершаем падение
+          if (hero.onPlatform) {
+            hero.isFalling = false;
+            hero.fallStartY = 0;
+          }
+        }
+
+        // Проверка на соприкосновение с лестницей
+        if (
+          hero.x < ladder.x + ladder.width &&
+          hero.x + hero.width > ladder.x &&
+          hero.y + hero.height > ladder.y &&
+          hero.y < ladder.y + ladder.height
+        ) {
+          hero.onLadder = true;
+          hero.onPlatform = false;
+        } else {
+          hero.onLadder = false;
+
+          // Проверка на соприкосновение с верхней частью платформы
+          hero.onPlatform = platforms.some(
+            (platform) =>
+              hero.x < platform.x + platform.width &&
+              hero.x + hero.width > platform.x &&
+              hero.y < platform.y
+          );
+
+          // Если герой не на лестнице и не на верхней части платформы и не в прыжке, пусть он падает вниз
+          if (!hero.isJumping && !hero.onPlatform && !hero.isFalling) {
+            hero.y += 5;
+            if (hero.y >= canvas.height - hero.height) {
+              hero.y = canvas.height - hero.height;
+
+              // Проверка на выход героя из зоны коллизии с розовыми квадратами
+              if (
+                hero.x > girls[0].x + girls[0].width ||
+                hero.x + hero.width < girls[0].x ||
+                hero.y > girls[0].y + girls[0].height ||
+                hero.y + hero.height < girls[0].y
+              ) {
+                // Обнуление очков героя
+                hero.score = 0;
+              }
+            }
+          }
+        }
+        handleGirlCollision();
+        updateGirlsTimer();
+      }
+
+      function updateGirlsTimer() {
+        girls.forEach((girl) => {
+          if (girl.timer > 0 && girl.isActive) {
+            girl.timer += 1 / 60; // Уменьшаем таймер при каждом обновлении игрового цикла (60 раз в секунду)
+
+            // Добавляем проверку на количество очков героя
+            if (hero.score >= 200) {
+              // Если количество очков достигло 200, сбрасываем таймер и делаем девушку неактивной
+              girl.timer = 0;
+              hero.score = 0;
+              girl.isActive = false;
+            }
+          }
+        });
+      }
+
+      function handleGirlCollision() {
+        girls.forEach((girl) => {
+          if (
+            hero.x < girl.x + girl.width &&
+            hero.x + hero.width > girl.x &&
+            hero.y < girl.y + girl.height &&
+            hero.y + hero.height > girl.y &&
+            girl.isActive
+          ) {
+            if (girl.timer === 0) {
+              girl.timer = 1 / 60; // 1 секунда
+            } else {
+              if (girl.timer >= 10) {
+                // После 10 секунд убираем розовый квадрат и начисляем очки
+                hero.score += 100;
+                girl.isActive = false;
+                girl.timer = 0; // Сбрасываем таймер
+              } else {
+                // До 10 секунд продолжаем увеличивать таймер
+                girl.timer += 1 / 60;
+              }
+            }
+          } else {
+            girl.timer = 0;
+          }
+        });
+      }
+      function drawHero() {
+        ctx.fillStyle = hero.color;
+        ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
+      }
+
+      function drawLadder() {
+        ctx.fillStyle = ladder.color;
+        ctx.fillRect(ladder.x, ladder.y, ladder.width, ladder.height);
+      }
+
+      function drawPlatforms() {
+        platforms.forEach((platform) => {
+          ctx.fillStyle = platform.color;
+          ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        });
+      }
+
+      function drawGirls() {
+        girls.forEach((girl) => {
+          if (girl.isActive) {
+            ctx.fillStyle = girl.color;
+            ctx.fillRect(girl.x, girl.y, girl.width, girl.height);
+          }
+        });
+      }
+
+      function drawScore() {
+        ctx.font = "24px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText("Score: " + hero.score, 10, 30);
+      }
+
+      function generateRandomGirlPosition(platform) {
+        const x = platform.x + Math.random() * (platform.width - 30); // 30 - ширина девушки
+        const y = platform.y - 30; // Размещаем девушку над платформой
+        return { x, y };
+      }
+
+      function generateGirls() {
+        platforms.forEach((platform) => {
+          // Генерируем девушек на каждой платформе
+          for (let i = 0; i < 2; i++) {
+            const { x, y } = generateRandomGirlPosition(platform);
+            const girl = {
+              x,
+              y,
+              width: 30,
+              height: 30,
+              color: "pink",
+              timer: 0,
+              isActive: true,
+            };
+            girls.push(girl);
+          }
+        });
+      }
+
+      generateGirls();
+
+      gameLoop();
+    </script>
+  </body>
 </html>
