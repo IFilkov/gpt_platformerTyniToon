@@ -293,6 +293,7 @@
         width: 30,
         height: 30,
         color: "aqua",
+        totalScore: 0,
       };
 
       let savedScore = 0;
@@ -412,6 +413,23 @@
             }
           }
 
+          // if (
+          //   hero.x < blueSquare.x + blueSquare.width &&
+          //   hero.x + hero.width > blueSquare.x &&
+          //   hero.y + hero.height > blueSquare.y &&
+          //   hero.y < blueSquare.y + blueSquare.height
+          // ) {
+          //   if (!blueSquare.isActive) {
+          //     savedScore = hero.score; // Сохраняем текущее количество очков
+          //     blueSquare.isActive = true;
+          //   }
+          // } else {
+          //   if (blueSquare.isActive) {
+          //     hero.score = savedScore; // Восстанавливаем сохраненные очки при выходе из коллизии
+          //     blueSquare.isActive = false;
+          //   }
+          // }
+
           if (
             hero.x < blueSquare.x + blueSquare.width &&
             hero.x + hero.width > blueSquare.x &&
@@ -419,12 +437,14 @@
             hero.y < blueSquare.y + blueSquare.height
           ) {
             if (!blueSquare.isActive) {
-              savedScore = hero.score; // Сохраняем текущее количество очков
+              // Сохраняем текущий счет в total score
+              blueSquare.totalScore += hero.score;
               blueSquare.isActive = true;
+              hero.score = 0; // Обнуляем текущий счет героя
             }
           } else {
             if (blueSquare.isActive) {
-              hero.score = savedScore; // Восстанавливаем сохраненные очки при выходе из коллизии
+              // Восстанавливаем сохраненный счет при выходе из коллизии
               blueSquare.isActive = false;
             }
           }
@@ -523,6 +543,7 @@
         ctx.font = "24px Arial";
         ctx.fillStyle = "black";
         ctx.fillText("Score: " + hero.score, 10, 30);
+        ctx.fillText("Total Score: " + blueSquare.totalScore, 10, 60);
       }
 
       function generateRandomGirlPosition(platform) {
