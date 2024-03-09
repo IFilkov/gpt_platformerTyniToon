@@ -547,6 +547,32 @@
         );
       }
 
+      function createPlatformBlock(x, y) {
+        const block = [
+          { x: x, y: y - 80, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 160, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 240, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 320, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 400, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 480, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 560, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 620, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 700, width: 180, height: 30, color: "blue" },
+        ];
+
+        // Добавляем розовые квадратики к каждой платформе
+        for (let i = 0; i < block.length; i++) {
+          const girl = generateRandomGirlPosition(block[i]);
+          girls.push(girl);
+        }
+
+        // Добавляем блок в массив платформ
+        platforms.push(...block);
+      }
+
+      // Вызываем функцию для создания блока слева от лестницы
+      createPlatformBlock(canvas.width / 2 - 250, canvas.height);
+
       function drawGirls() {
         girls.forEach((girl) => {
           if (girl.isActive) {
