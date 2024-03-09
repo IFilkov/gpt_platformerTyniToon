@@ -72,15 +72,7 @@
           timer: 0,
           isActive: true,
         },
-        {
-          x: canvas.width / 2 + 450,
-          y: canvas.height - 120,
-          width: 30,
-          height: 30,
-          color: "pink",
-          timer: 0,
-          isActive: true,
-        },
+
         // Добавьте дополнительные девушки, если нужно
       ];
 
@@ -280,6 +272,85 @@
         // Четвертый столбик
       ];
 
+      const blackSquares = [
+        // Черные квадраты сверху
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 120,
+          width: 30,
+          height: 30,
+          color: "black",
+          speedY: -2,
+          platform: null,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 120,
+          width: 30,
+          height: 30,
+          color: "black",
+          speedY: -2,
+          platform: null,
+          isActive: true,
+        },
+        // Черные квадраты снизу
+        {
+          x: canvas.width / 2 + 50,
+          y: canvas.height - 240,
+          width: 30,
+          height: 30,
+          color: "black",
+          speedY: 2,
+          platform: null,
+          isActive: true,
+        },
+        {
+          x: canvas.width / 2 + 250,
+          y: canvas.height - 240,
+          width: 30,
+          height: 30,
+          color: "black",
+          speedY: 2,
+          platform: null,
+          isActive: true,
+        },
+      ];
+
+      function getRandomPlatform() {
+        const randomIndex = Math.floor(Math.random() * platforms.length);
+        return platforms[randomIndex];
+      }
+
+      function drawBlackSquares() {
+        blackSquares.forEach((square) => {
+          if (square.isActive) {
+            ctx.fillStyle = square.color;
+            ctx.fillRect(square.x, square.y, square.width, square.height);
+          }
+        });
+      }
+
+      function moveBlackSquares() {
+        blackSquares.forEach((square) => {
+          if (square.isActive) {
+            if (!square.platform) {
+              square.platform = getRandomPlatform();
+              square.y = square.platform.y - square.height;
+            }
+
+            if (
+              square.y + square.speedY > square.platform.y ||
+              square.y + square.speedY < square.platform.y - square.height
+            ) {
+              square.speedY *= -1; // Изменяем направление, если квадрат достиг границы платформы
+            }
+
+            square.y += square.speedY;
+          }
+        });
+      }
+
       const keys = {};
       window.addEventListener("keydown", (e) => (keys[e.code] = true));
       window.addEventListener("keyup", (e) => (keys[e.code] = false));
@@ -290,10 +361,22 @@
         drawLadder();
         drawPlatforms();
         drawGirls();
+        drawBlackSquares();
         drawHero();
         drawScore();
         requestAnimationFrame(gameLoop);
       }
+
+      const blueSquare = {
+        x: canvas.width / 2 + 450,
+        y: canvas.height - 700,
+        width: 30,
+        height: 30,
+        color: "aqua",
+        totalScore: 0,
+      };
+
+      let savedScore = 0;
 
       function update() {
         if (keys["ArrowLeft"] && hero.x > 0) {
@@ -406,13 +489,66 @@
               ) {
                 // Обнуление очков героя
                 hero.score = 0;
-                isInGirlCollision = false;
               }
             }
           }
+
+          // if (
+          //   hero.x < blueSquare.x + blueSquare.width &&
+          //   hero.x + hero.width > blueSquare.x &&
+          //   hero.y + hero.height > blueSquare.y &&
+          //   hero.y < blueSquare.y + blueSquare.height
+          // ) {
+          //   if (!blueSquare.isActive) {
+          //     savedScore = hero.score; // Сохраняем текущее количество очков
+          //     blueSquare.isActive = true;
+          //   }
+          // } else {
+          //   if (blueSquare.isActive) {
+          //     hero.score = savedScore; // Восстанавливаем сохраненные очки при выходе из коллизии
+          //     blueSquare.isActive = false;
+          //   }
+          // }
+
+          if (
+            hero.x < blueSquare.x + blueSquare.width &&
+            hero.x + hero.width > blueSquare.x &&
+            hero.y + hero.height > blueSquare.y &&
+            hero.y < blueSquare.y + blueSquare.height
+          ) {
+            if (!blueSquare.isActive) {
+              // Сохраняем текущий счет в total score
+              blueSquare.totalScore += hero.score;
+              blueSquare.isActive = true;
+              hero.score = 0; // Обнуляем текущий счет героя
+            }
+          } else {
+            if (blueSquare.isActive) {
+              // Восстанавливаем сохраненный счет при выходе из коллизии
+              blueSquare.isActive = false;
+            }
+          }
         }
+        placeBlueSquareOnTop();
         handleGirlCollision();
         updateGirlsTimer();
+        moveBlackSquares();
+      }
+
+      function placeBlueSquareOnTop() {
+        let topPlatform = platforms[0]; // Инициализируем первой платформой
+
+        // Находим платформу, на которой находится герой
+        // for (let i = 1; i < platforms.length; i++) {
+        //   if (hero.y < platforms[i].y) {
+        //     topPlatform = platforms[i];
+        //   }
+        // }
+
+        // Размещаем голубой квадрат сверху этой платформы
+        blueSquare.x =
+          topPlatform.x + (topPlatform.width - blueSquare.width) / 2;
+        blueSquare.y = topPlatform.y - blueSquare.height;
       }
 
       function updateGirlsTimer() {
@@ -444,8 +580,13 @@
               girl.timer = 1 / 60; // 1 секунда
             } else {
               if (girl.timer >= 10) {
-                // После 10 секунд убираем розовый квадрат и начисляем очки
-                hero.score += 100;
+                // После 10 секунд убираем розовый квадрат
+                if (Math.random() < 0.33) {
+                  // С вероятностью 1/3 сбрасываем очки на 0
+                  hero.score = 0;
+                } else {
+                  hero.score += 100; // Иначе начисляем очки
+                }
                 girl.isActive = false;
                 girl.timer = 0; // Сбрасываем таймер
               } else {
@@ -458,6 +599,7 @@
           }
         });
       }
+
       function drawHero() {
         ctx.fillStyle = hero.color;
         ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
@@ -473,7 +615,56 @@
           ctx.fillStyle = platform.color;
           ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         });
+        drawBlueSquare();
       }
+
+      function drawBlueSquare() {
+        ctx.fillStyle = blueSquare.color;
+        ctx.fillRect(
+          blueSquare.x,
+          blueSquare.y,
+          blueSquare.width,
+          blueSquare.height
+        );
+      }
+
+      function createPlatformBlock(x, y) {
+        const block = [
+          { x: x, y: y - 808, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 80, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 160, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 240, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 320, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 400, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 480, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 560, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 620, width: 180, height: 30, color: "blue" },
+          { x: x, y: y - 700, width: 180, height: 30, color: "blue" },
+          //следующий этаж
+          { x: x - 200, y: y - 808, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 160, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 240, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 320, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 400, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 480, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 560, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 620, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 700, width: 180, height: 30, color: "blue" },
+          { x: x - 200, y: y - 80, width: 180, height: 30, color: "blue" },
+        ];
+
+        // Добавляем розовые квадратики к каждой платформе
+        for (let i = 0; i < block.length; i++) {
+          const girl = generateRandomGirlPosition(block[i]);
+          girls.push(girl);
+        }
+
+        // Добавляем блок в массив платформ
+        platforms.push(...block);
+      }
+
+      // Вызываем функцию для создания блока слева от лестницы
+      createPlatformBlock(canvas.width / 2 - 250, canvas.height);
 
       function drawGirls() {
         girls.forEach((girl) => {
@@ -488,7 +679,35 @@
         ctx.font = "24px Arial";
         ctx.fillStyle = "black";
         ctx.fillText("Score: " + hero.score, 10, 30);
+        ctx.fillText("Total Score: " + blueSquare.totalScore, 10, 60);
       }
+
+      function generateRandomGirlPosition(platform) {
+        const x = platform.x + Math.random() * (platform.width - 30); // 30 - ширина девушки
+        const y = platform.y - 30; // Размещаем девушку над платформой
+        return { x, y };
+      }
+
+      function generateGirls() {
+        platforms.forEach((platform) => {
+          // Генерируем девушек на каждой платформе
+          for (let i = 0; i < 2; i++) {
+            const { x, y } = generateRandomGirlPosition(platform);
+            const girl = {
+              x,
+              y,
+              width: 30,
+              height: 30,
+              color: "pink",
+              timer: 0,
+              isActive: true,
+            };
+            girls.push(girl);
+          }
+        });
+      }
+
+      generateGirls();
 
       gameLoop();
     </script>
