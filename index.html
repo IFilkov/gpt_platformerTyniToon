@@ -280,8 +280,10 @@
           width: 30,
           height: 30,
           color: "black",
-          speedY: -2,
+          speedX: 2, // Скорость по горизонтали
+          speedY: -2, // Скорость по вертикали
           platform: null,
+          ladder: null,
           isActive: true,
         },
         {
@@ -290,8 +292,10 @@
           width: 30,
           height: 30,
           color: "black",
+          speedX: -2,
           speedY: -2,
           platform: null,
+          ladder: null,
           isActive: true,
         },
         // Черные квадраты снизу
@@ -301,8 +305,10 @@
           width: 30,
           height: 30,
           color: "black",
+          speedX: 2,
           speedY: 2,
           platform: null,
+          ladder: null,
           isActive: true,
         },
         {
@@ -311,8 +317,10 @@
           width: 30,
           height: 30,
           color: "black",
+          speedX: -2,
           speedY: 2,
           platform: null,
+          ladder: null,
           isActive: true,
         },
       ];
@@ -321,6 +329,26 @@
         const randomIndex = Math.floor(Math.random() * platforms.length);
         return platforms[randomIndex];
       }
+
+      function generateBlackSquares() {
+        platforms.forEach((platform) => {
+          const square = {
+            x: platform.x + Math.random() * (platform.width - 30), // 30 - ширина квадрата
+            y: platform.y - 30, // Размещаем квадрат над платформой
+            width: 30,
+            height: 30,
+            color: "black",
+            speedX: Math.random() < 0.5 ? 2 : -2, // Случайное направление по горизонтали
+            speedY: Math.random() < 0.5 ? 2 : -2, // Случайное направление по вертикали
+            platform: platform,
+            ladder: null,
+            isActive: true,
+          };
+          blackSquares.push(square);
+        });
+      }
+
+      generateBlackSquares();
 
       function drawBlackSquares() {
         blackSquares.forEach((square) => {
@@ -334,19 +362,36 @@
       function moveBlackSquares() {
         blackSquares.forEach((square) => {
           if (square.isActive) {
-            if (!square.platform) {
-              square.platform = getRandomPlatform();
-              square.y = square.platform.y - square.height;
+            // Логика движения остается без изменений
+
+            // Если квадрат вышел за границы canvas, изменяем направление
+            if (
+              square.x + square.speedX > canvas.width - square.width ||
+              square.x + square.speedX < 0
+            ) {
+              square.speedX *= -1;
             }
 
             if (
-              square.y + square.speedY > square.platform.y ||
-              square.y + square.speedY < square.platform.y - square.height
+              square.y + square.speedY > canvas.height - square.height ||
+              square.y + square.speedY < 0
             ) {
-              square.speedY *= -1; // Изменяем направление, если квадрат достиг границы платформы
+              square.speedY *= -1;
             }
 
+            square.x += square.speedX;
             square.y += square.speedY;
+          }
+        });
+      }
+
+      // ... (остальные функции отрисовки без изменений)
+
+      function drawBlackSquares() {
+        blackSquares.forEach((square) => {
+          if (square.isActive) {
+            ctx.fillStyle = square.color;
+            ctx.fillRect(square.x, square.y, square.width, square.height);
           }
         });
       }
