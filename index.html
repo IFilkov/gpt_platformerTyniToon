@@ -287,6 +287,17 @@
         requestAnimationFrame(gameLoop);
       }
 
+      const blueSquare = {
+        x: canvas.width / 2 + 450,
+        y: canvas.height - 700,
+        width: 30,
+        height: 30,
+        color: "aqua",
+        totalScore: 0,
+      };
+
+      let savedScore = 0;
+
       function update() {
         if (keys["ArrowLeft"] && hero.x > 0) {
           hero.x -= hero.speed;
@@ -401,9 +412,62 @@
               }
             }
           }
+
+          // if (
+          //   hero.x < blueSquare.x + blueSquare.width &&
+          //   hero.x + hero.width > blueSquare.x &&
+          //   hero.y + hero.height > blueSquare.y &&
+          //   hero.y < blueSquare.y + blueSquare.height
+          // ) {
+          //   if (!blueSquare.isActive) {
+          //     savedScore = hero.score; // Сохраняем текущее количество очков
+          //     blueSquare.isActive = true;
+          //   }
+          // } else {
+          //   if (blueSquare.isActive) {
+          //     hero.score = savedScore; // Восстанавливаем сохраненные очки при выходе из коллизии
+          //     blueSquare.isActive = false;
+          //   }
+          // }
+
+          if (
+            hero.x < blueSquare.x + blueSquare.width &&
+            hero.x + hero.width > blueSquare.x &&
+            hero.y + hero.height > blueSquare.y &&
+            hero.y < blueSquare.y + blueSquare.height
+          ) {
+            if (!blueSquare.isActive) {
+              // Сохраняем текущий счет в total score
+              blueSquare.totalScore += hero.score;
+              blueSquare.isActive = true;
+              hero.score = 0; // Обнуляем текущий счет героя
+            }
+          } else {
+            if (blueSquare.isActive) {
+              // Восстанавливаем сохраненный счет при выходе из коллизии
+              blueSquare.isActive = false;
+            }
+          }
         }
+        placeBlueSquareOnTop();
         handleGirlCollision();
         updateGirlsTimer();
+      }
+
+      function placeBlueSquareOnTop() {
+        let topPlatform = platforms[0]; // Инициализируем первой платформой
+
+        // Находим платформу, на которой находится герой
+        // for (let i = 1; i < platforms.length; i++) {
+        //   if (hero.y < platforms[i].y) {
+        //     topPlatform = platforms[i];
+        //   }
+        // }
+
+        // Размещаем голубой квадрат сверху этой платформы
+        blueSquare.x =
+          topPlatform.x + (topPlatform.width - blueSquare.width) / 2;
+        blueSquare.y = topPlatform.y - blueSquare.height;
       }
 
       function updateGirlsTimer() {
@@ -435,8 +499,13 @@
               girl.timer = 1 / 60; // 1 секунда
             } else {
               if (girl.timer >= 10) {
-                // После 10 секунд убираем розовый квадрат и начисляем очки
-                hero.score += 100;
+                // После 10 секунд убираем розовый квадрат
+                if (Math.random() < 0.33) {
+                  // С вероятностью 1/3 сбрасываем очки на 0
+                  hero.score = 0;
+                } else {
+                  hero.score += 100; // Иначе начисляем очки
+                }
                 girl.isActive = false;
                 girl.timer = 0; // Сбрасываем таймер
               } else {
@@ -449,6 +518,7 @@
           }
         });
       }
+
       function drawHero() {
         ctx.fillStyle = hero.color;
         ctx.fillRect(hero.x, hero.y, hero.width, hero.height);
@@ -464,6 +534,17 @@
           ctx.fillStyle = platform.color;
           ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         });
+        drawBlueSquare();
+      }
+
+      function drawBlueSquare() {
+        ctx.fillStyle = blueSquare.color;
+        ctx.fillRect(
+          blueSquare.x,
+          blueSquare.y,
+          blueSquare.width,
+          blueSquare.height
+        );
       }
 
       function drawGirls() {
@@ -479,6 +560,7 @@
         ctx.font = "24px Arial";
         ctx.fillStyle = "black";
         ctx.fillText("Score: " + hero.score, 10, 30);
+        ctx.fillText("Total Score: " + blueSquare.totalScore, 10, 60);
       }
 
       function generateRandomGirlPosition(platform) {
