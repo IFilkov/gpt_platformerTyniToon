@@ -518,10 +518,28 @@
         isActive: true,
       };
 
+      const hunter2 = {
+        x: canvas.width / 2 + 215, // Начальная позиция охотника (правее центра лестницы)
+        y: ladder.y + ladder.height - 30, // Начальная позиция охотника (внизу лестницы)
+        width: 30,
+        height: 30,
+        color: "yellow",
+        speedY: 2, // Скорость по вертикали
+        onLadder: true, // Флаг, указывающий, что охотник находится на лестнице
+        isActive: true,
+      };
+
       function drawHunter() {
         if (hunter.isActive) {
           ctx.fillStyle = hunter.color;
           ctx.fillRect(hunter.x, hunter.y, hunter.width, hunter.height);
+        }
+      }
+
+      function drawHunter2() {
+        if (hunter2.isActive) {
+          ctx.fillStyle = hunter2.color;
+          ctx.fillRect(hunter2.x, hunter2.y, hunter2.width, hunter2.height);
         }
       }
 
@@ -543,6 +561,24 @@
         }
       }
 
+      function moveHunter2() {
+        if (hunter2.isActive) {
+          // Проверяем, находится ли охотник на лестнице
+          if (hunter2.onLadder) {
+            // Двигаем охотника вверх и вниз по лестнице
+            hunter2.y += hunter2.speedY;
+
+            // Проверяем, достиг ли охотник верхней или нижней границы лестницы
+            if (
+              hunter2.y < ladder.y ||
+              hunter2.y + hunter2.height > ladder.y + ladder.height
+            ) {
+              hunter2.speedY *= -1; // Изменяем направление, если достиг границы
+            }
+          }
+        }
+      }
+
       const keys = {};
       window.addEventListener("keydown", (e) => (keys[e.code] = true));
       window.addEventListener("keyup", (e) => (keys[e.code] = false));
@@ -555,7 +591,8 @@
         drawGirls();
         drawBlackSquares();
         drawHero();
-        drawHunter(); // Добавляем отрисовку охотника
+        drawHunter();
+        drawHunter2(); // Добавляем отрисовку охотника
         drawScore();
         requestAnimationFrame(gameLoop);
       }
@@ -727,6 +764,7 @@
         updateGirlsTimer();
         moveBlackSquares();
         moveHunter();
+        moveHunter2();
       }
 
       function placeBlueSquareOnTop() {
