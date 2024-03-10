@@ -276,10 +276,10 @@
         // Черные квадраты сверху
         {
           x: canvas.width / 2 + 50,
-          y: canvas.height - 120,
+          y: canvas.height - 240,
           width: 30,
           height: 30,
-          color: "black",
+          color: "lime",
           speedX: 2, // Скорость по горизонтали
           speedY: -2, // Скорость по вертикали
           platform: null,
@@ -287,11 +287,11 @@
           isActive: true,
         },
         {
-          x: canvas.width / 2 + 250,
+          x: canvas.width / 2 + 10,
           y: canvas.height - 120,
           width: 30,
           height: 30,
-          color: "black",
+          color: "Olive",
           speedX: -2,
           speedY: -2,
           platform: null,
@@ -330,6 +330,47 @@
         return platforms[randomIndex];
       }
 
+      function updateBlackSquarePosition(square) {
+        // Если прошло более 20 секунд, изменяем платформу
+        if (platformChangeTimer >= 20) {
+          square.platform = getRandomPlatform();
+          platformChangeTimer = 0; // Сбрасываем таймер изменения платформы
+        }
+
+        // Логика перемещения по текущей платформе
+        if (square.platform) {
+          square.x += square.speedX;
+
+          if (
+            square.x + square.width >
+              square.platform.x + square.platform.width ||
+            square.x < square.platform.x
+          ) {
+            square.speedX *= -1; // Меняем направление, если достигли границ платформы
+          }
+        }
+      }
+
+      function generateBlackSquares() {
+        platforms.forEach((platform) => {
+          const square = {
+            x: platform.x + Math.random() * (platform.width - 30), // 30 - ширина квадрата
+            y: platform.y - 30, // Размещаем квадрат над платформой
+            width: 30,
+            height: 30,
+            color: "black",
+            speedX: Math.random() < 0.5 ? 2 : -2, // Случайное направление по горизонтали
+            speedY: Math.random() < 0.5 ? 2 : -2, // Случайное направление по вертикали
+            platform: platform,
+            ladder: null,
+            isActive: true,
+          };
+          blackSquares.push(square);
+        });
+      }
+
+      // generateBlackSquares();
+
       function drawBlackSquares() {
         blackSquares.forEach((square) => {
           if (square.isActive) {
@@ -339,48 +380,69 @@
         });
       }
 
+      let platformChangeTimer = 0;
+
+      function updateBlackSquares() {
+        blackSquares.forEach((square) => {
+          if (square.isActive) {
+            // Обновите позицию каждого черного квадрата, например, вызвав функцию, которую вы используете для их перемещения
+            updateBlackSquarePosition(square);
+          }
+        });
+      }
+
+      setInterval(updateBlackSquares, 2000); // Обновляет черные квадраты каждые 20 секунд
+
       function moveBlackSquares() {
         blackSquares.forEach((square) => {
           if (square.isActive) {
-            if (!square.platform && !square.ladder) {
-              // Если квадрат не находится на платформе и не на лестнице,
-              // случайным образом выбираем, куда его переместить
-              if (Math.random() < 0.5) {
-                square.platform = getRandomPlatform();
-                square.y = square.platform.y - square.height;
-                square.ladder = null;
-              } else {
-                square.ladder = ladder;
-                square.y = ladder.y - square.height;
-                square.platform = null;
-              }
+            // Логика движения остается без изменений
+
+            // Если квадрат вышел за границы canvas, изменяем направление
+            if (
+              square.x + square.speedX > canvas.width - square.width ||
+              square.x + square.speedX < 0
+            ) {
+              square.speedX *= -1;
             }
 
-            // Если квадрат находится на платформе, перемещаем его влево и вправо
-            if (square.platform) {
+            if (
+              square.y + square.speedY > canvas.height - square.height ||
+              square.y + square.speedY < 0
+            ) {
+              square.speedY *= -1;
+              1;
+            }
+
+            square.x += square.speedX;
+            square.y += square.speedY;
+
+            // Проверка на соприкосновение с платформой
+            platforms.forEach((platform) => {
               if (
-                square.x + square.speedX >
-                  square.platform.x + square.platform.width ||
-                square.x + square.speedX < square.platform.x
+                square.x < platform.x + platform.width &&
+                square.x + square.width > platform.x &&
+                square.y + square.height > platform.y &&
+                square.y < platform.y + platform.height
               ) {
-                square.speedX *= -1; // Изменяем направление, если квадрат достиг границы платформы
+                // Обновляем координаты квадрата в соответствии с платформой
+                square.y = platform.y - square.height;
+                // Ограничиваем перемещение в пределах платформы
+                if (
+                  square.x < platform.x ||
+                  square.x + square.width > platform.x + platform.width
+                ) {
+                  square.speedX *= -1; // Меняем направление по горизонтали
+                }
+
+                if (square.y + square.speedY > platform.y) {
+                  square.speedY *= -1; // Меняем направление по вертикали
+                }
               }
+            });
 
-              square.x += square.speedX;
-            }
-
-            // Если квадрат находится на лестнице, перемещаем его вверх и вниз
-            if (square.ladder) {
-              if (
-                square.y + square.speedY >
-                  square.ladder.y + square.ladder.height ||
-                square.y + square.speedY < square.ladder.y
-              ) {
-                square.speedY *= -1; // Изменяем направление, если квадрат достиг границы лестницы
-              }
-
-              square.y += square.speedY;
-            }
+            square.x += square.speedX;
+            square.y += square.speedY;
           }
         });
       }
