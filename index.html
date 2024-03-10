@@ -506,6 +506,43 @@
         });
       }
 
+      // Добавим объект для охотника
+      const hunter = {
+        x: canvas.width / 2 - 15, // Начальная позиция охотника (центр лестницы)
+        y: ladder.y + ladder.height - 30, // Начальная позиция охотника (внизу лестницы)
+        width: 30,
+        height: 30,
+        color: "yellow",
+        speedY: 2, // Скорость по вертикали
+        onLadder: true, // Флаг, указывающий, что охотник находится на лестнице
+        isActive: true,
+      };
+
+      function drawHunter() {
+        if (hunter.isActive) {
+          ctx.fillStyle = hunter.color;
+          ctx.fillRect(hunter.x, hunter.y, hunter.width, hunter.height);
+        }
+      }
+
+      function moveHunter() {
+        if (hunter.isActive) {
+          // Проверяем, находится ли охотник на лестнице
+          if (hunter.onLadder) {
+            // Двигаем охотника вверх и вниз по лестнице
+            hunter.y += hunter.speedY;
+
+            // Проверяем, достиг ли охотник верхней или нижней границы лестницы
+            if (
+              hunter.y < ladder.y ||
+              hunter.y + hunter.height > ladder.y + ladder.height
+            ) {
+              hunter.speedY *= -1; // Изменяем направление, если достиг границы
+            }
+          }
+        }
+      }
+
       const keys = {};
       window.addEventListener("keydown", (e) => (keys[e.code] = true));
       window.addEventListener("keyup", (e) => (keys[e.code] = false));
@@ -518,6 +555,7 @@
         drawGirls();
         drawBlackSquares();
         drawHero();
+        drawHunter(); // Добавляем отрисовку охотника
         drawScore();
         requestAnimationFrame(gameLoop);
       }
@@ -688,6 +726,7 @@
         handleGirlCollision();
         updateGirlsTimer();
         moveBlackSquares();
+        moveHunter();
       }
 
       function placeBlueSquareOnTop() {
