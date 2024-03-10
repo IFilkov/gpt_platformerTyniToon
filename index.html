@@ -381,6 +381,19 @@
 
             square.x += square.speedX;
             square.y += square.speedY;
+
+            // Проверка на соприкосновение с платформой
+            platforms.forEach((platform) => {
+              if (
+                square.x < platform.x + platform.width &&
+                square.x + square.width > platform.x &&
+                square.y + square.height > platform.y &&
+                square.y < platform.y + platform.height
+              ) {
+                // Обновляем координаты квадрата в соответствии с платформой
+                square.y = platform.y - square.height;
+              }
+            });
           }
         });
       }
