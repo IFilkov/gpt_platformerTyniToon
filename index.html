@@ -54,25 +54,24 @@
 
       const girls = [
         // Позиции девушек (x, y) и их текущий таймер
-        {
-          x: canvas.width / 2 + 50,
-          y: canvas.height - 120,
-          width: 30,
-          height: 30,
-          color: "pink",
-          timer: 0,
-          isActive: true,
-        },
-        {
-          x: canvas.width / 2 + 250,
-          y: canvas.height - 120,
-          width: 30,
-          height: 30,
-          color: "pink",
-          timer: 0,
-          isActive: true,
-        },
-
+        // {
+        //   x: canvas.width / 2 + 50,
+        //   y: canvas.height - 120,
+        //   width: 30,
+        //   height: 30,
+        //   color: "MediumVioletRed",
+        //   timer: 10,
+        //   isActive: true,
+        // },
+        // {
+        //   x: canvas.width / 2 + 250,
+        //   y: canvas.height - 120,
+        //   width: 30,
+        //   height: 30,
+        //   color: "LightSalmon",
+        //   timer: 220,
+        //   isActive: true,
+        // },
         // Добавьте дополнительные девушки, если нужно
       ];
 
@@ -265,7 +264,7 @@
         {
           x: canvas.width / 2 + 450,
           y: canvas.height - 700,
-          width: 180,
+          width: 280,
           height: 30,
           color: "blue",
         },
@@ -378,27 +377,6 @@
         return platforms[randomIndex];
       }
 
-      function updateBlackSquarePosition(square) {
-        // Если прошло более 20 секунд, изменяем платформу
-        if (platformChangeTimer >= 20) {
-          square.platform = getRandomPlatform();
-          platformChangeTimer = 0; // Сбрасываем таймер изменения платформы
-        }
-
-        // Логика перемещения по текущей платформе
-        if (square.platform) {
-          square.x += square.speedX;
-
-          if (
-            square.x + square.width >
-              square.platform.x + square.platform.width ||
-            square.x < square.platform.x
-          ) {
-            square.speedX *= -1; // Меняем направление, если достигли границ платформы
-          }
-        }
-      }
-
       function generateBlackSquares() {
         platforms.forEach((platform) => {
           const square = {
@@ -429,6 +407,56 @@
       }
 
       let platformChangeTimer = 0;
+      const platformChangeInterval = 6;
+
+      function updateBlackSquarePosition() {
+        blackSquares.forEach((square) => {
+          if (square.isActive) {
+            // Логика движения остается без изменений
+
+            // Если квадрат вышел за границы canvas, изменяем направление
+            if (
+              square.x + square.speedX > canvas.width - square.width ||
+              square.x + square.speedX < 0
+            ) {
+              square.speedX *= -1;
+            }
+
+            if (
+              square.y + square.speedY > canvas.height - square.height ||
+              square.y + square.speedY < 0
+            ) {
+              square.speedY *= -1;
+            }
+
+            square.x += square.speedX;
+            square.y += square.speedY;
+
+            // Обновляем таймер для смены платформы
+            platformChangeTimer += 1 / 60;
+
+            // Если таймер превысил установленный интервал, меняем платформу
+            if (platformChangeTimer >= platformChangeInterval) {
+              platformChangeTimer = 0;
+              changeBlackSquarePlatform(square);
+            }
+          }
+        });
+      }
+
+      // Добавим функцию для смены платформы у BlackSquare
+      function changeBlackSquarePlatform(square) {
+        // Выбираем новую случайную платформу
+        const newPlatform = getRandomPlatform();
+
+        // Устанавливаем новые координаты для BlackSquare
+        square.x =
+          newPlatform.x + Math.random() * (newPlatform.width - square.width);
+        square.y = newPlatform.y - square.height;
+
+        // Устанавливаем новую платформу для BlackSquare
+        square.platform = newPlatform;
+      }
 
       function updateBlackSquares() {
         blackSquares.forEach((square) => {
@@ -524,7 +552,7 @@
         width: 30,
         height: 30,
         color: "yellow",
-        speedY: 2, // Скорость по вертикали
+        speedY: 4, // Скорость по вертикали
         onLadder: true, // Флаг, указывающий, что охотник находится на лестнице
         isActive: true,
       };
@@ -607,6 +635,24 @@
       };
 
       let savedScore = 0;
+
+      function checkCollisionWithPlatform() {
+        for (let i = 0; i < platforms.length; i++) {
+          let platform = platforms[i];
+          if (
+            hero.x < platform.x + platform.width &&
+            hero.x + hero.width > platform.x &&
+            hero.y + hero.height > platform.y &&
+            hero.y < platform.y &&
+            !hero.isJumping
+          ) {
+            hero.onPlatform = true;
+            return true;
+          }
+        }
+        hero.onPlatform = false;
+        return false;
+      }
 
       function update() {
         if (keys["ArrowLeft"] && hero.x > 0) {
@@ -697,12 +743,12 @@
           hero.onLadder = false;
 
           // Проверка на соприкосновение с верхней частью платформы
-          hero.onPlatform = platforms.some(
-            (platform) =>
-              hero.x < platform.x + platform.width &&
-              hero.x + hero.width > platform.x &&
-              hero.y < platform.y
-          );
+          // hero.onPlatform = platforms.some(
+          //   (platform) =>
+          //     hero.x < platform.x + platform.width &&
+          //     hero.x + hero.width > platform.x &&
+          //     hero.y < platform.y
+          // );
 
           // Если герой не на лестнице и не на верхней части платформы и не в прыжке, пусть он падает вниз
           if (!hero.isJumping && !hero.onPlatform && !hero.isFalling) {
@@ -759,6 +805,7 @@
             }
           }
         }
+        checkCollisionWithPlatform();
         placeBlueSquareOnTop();
         handleGirlCollision();
         updateGirlsTimer();
